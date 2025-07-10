@@ -87,7 +87,8 @@ export class InventoryService {
 
     const updatedItem = await this.findOne(id);
 
-    this.websocketGateway.sendInventoryUpdate(updatedItem.branchId, {
+    this.websocketGateway.broadcastInventoryUpdate({
+      branchId: updatedItem.branchId,
       itemId: id,
       currentStock: newStock,
       minimumStock: item.minimumStock,
@@ -96,7 +97,8 @@ export class InventoryService {
     });
 
     if (newStock <= item.minimumStock) {
-      this.websocketGateway.sendInventoryAlert(updatedItem.branchId, {
+      this.websocketGateway.broadcastInventoryUpdate({
+        branchId: updatedItem.branchId,
         itemId: id,
         itemName: updatedItem.menuItem?.name || 'Unknown Item',
         currentStock: newStock,
@@ -210,7 +212,7 @@ export class InventoryService {
           expectedDelivery: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days
         });
 
-        this.websocketGateway.sendSystemAlert(branchId, {
+        this.websocketGateway.sendSystemAlert({
           title: 'Automatic Reorder Processed',
           message: `Auto-ordered ${suggestion.suggestedQuantity} units of ${suggestion.itemName}`,
           severity: 'info',

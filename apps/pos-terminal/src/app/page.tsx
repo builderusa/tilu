@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Button, Card, CardHeader, CardTitle, CardContent, Input, Badge } from '@tillu/ui'
 import { ShoppingCart, Search, Mic, Users, Settings, BarChart3, Bot, Wifi, WifiOff } from 'lucide-react'
+import { TailwindForcer } from '../components/TailwindForcer'
 import { offlineSyncService } from '../services/offlineSync';
 import { AIAssistant } from '../components/AIAssistant';
 import { SmartRecommendations } from '../components/SmartRecommendations';
@@ -236,6 +237,7 @@ export default function POSTerminal() {
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <TailwindForcer />
       <div className="flex-1 flex flex-col">
         <header className="bg-white shadow-lg border-b px-6 py-4 backdrop-blur-sm bg-white/95">
           <div className="flex items-center justify-between">

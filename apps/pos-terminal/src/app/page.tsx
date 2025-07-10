@@ -235,40 +235,37 @@ export default function POSTerminal() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="flex-1 flex flex-col">
-        <header className="bg-white shadow-sm border-b px-6 py-4">
+        <header className="bg-white shadow-lg border-b px-6 py-4 backdrop-blur-sm bg-white/95">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">Tillu POS Terminal</h1>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Tillu POS Terminal</h1>
             <div className="flex items-center space-x-4">
-              <Badge variant={isOnline ? "success" : "destructive"} className="flex items-center space-x-1">
+              <Badge variant={isWebSocketConnected ? "success" : "destructive"} className="flex items-center space-x-1 px-3 py-1">
                 {isWebSocketConnected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-                <span>{isOnline ? 'Online' : 'Offline'}</span>
+                <span>{isWebSocketConnected ? 'Online' : 'Offline'}</span>
               </Badge>
               {activeUsers > 1 && (
                 <Badge variant="secondary" className="text-xs">
                   {activeUsers} active users
                 </Badge>
               )}
-              <Button variant="ghost" size="sm">
-                <Users className="h-4 w-4 mr-2" />
+              <Button variant="outline" size="md" icon={<Users className="h-4 w-4" />} iconPosition="left">
                 Staff
               </Button>
-              <Button variant="ghost" size="sm">
-                <BarChart3 className="h-4 w-4 mr-2" />
+              <Button variant="outline" size="md" icon={<BarChart3 className="h-4 w-4" />} iconPosition="left">
                 Analytics
               </Button>
               <Button 
-                variant="ghost" 
-                size="sm"
+                variant="success" 
+                size="md"
                 onClick={() => setShowAIAssistant(true)}
+                icon={<Bot className="h-4 w-4" />}
+                iconPosition="left"
               >
-                <Bot className="h-4 w-4 mr-2" />
                 AI Assistant
               </Button>
-              <Button variant="ghost" size="sm">
-                <Settings className="h-4 w-4" />
-              </Button>
+              <Button variant="ghost" size="md" icon={<Settings className="h-4 w-4" />} />
             </div>
           </div>
         </header>
@@ -277,21 +274,25 @@ export default function POSTerminal() {
           <div className="flex-1 p-6">
             <div className="mb-6">
               <div className="flex items-center space-x-4 mb-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <div className="flex-1">
                   <Input
                     placeholder="Search menu items..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+                    icon={<Search className="h-4 w-4" />}
+                    iconPosition="left"
+                    variant="outlined"
+                    size="lg"
                   />
                 </div>
                 <Button
-                  variant={isListening ? "danger" : "secondary"}
+                  variant={isListening ? "danger" : "outline"}
                   onClick={startVoiceInput}
-                  className="px-3"
+                  size="lg"
+                  icon={<Mic className={`h-4 w-4 ${isListening ? 'animate-pulse' : ''}`} />}
+                  rounded
                 >
-                  <Mic className={`h-4 w-4 ${isListening ? 'animate-pulse' : ''}`} />
+                  {isListening ? 'Listening...' : 'Voice'}
                 </Button>
               </div>
 
@@ -299,10 +300,11 @@ export default function POSTerminal() {
                 {categories.map(category => (
                   <Button
                     key={category}
-                    variant={selectedCategory === category ? "primary" : "secondary"}
-                    size="sm"
+                    variant={selectedCategory === category ? "primary" : "outline"}
+                    size="md"
                     onClick={() => setSelectedCategory(category)}
                     className="capitalize"
+                    rounded
                   >
                     {category}
                   </Button>
@@ -310,16 +312,18 @@ export default function POSTerminal() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {filteredItems.map(item => (
-                <Card key={item.id} className="cursor-pointer hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold text-sm mb-2">{item.name}</h3>
-                    <p className="text-lg font-bold text-blue-600">£{item.price.toFixed(2)}</p>
+                <Card key={item.id} className="cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-0 shadow-lg bg-gradient-to-br from-white to-gray-50">
+                  <CardContent className="p-6">
+                    <h3 className="font-bold text-lg mb-3 text-gray-800">{item.name}</h3>
+                    <p className="text-2xl font-bold text-blue-600 mb-4">£{item.price.toFixed(2)}</p>
                     <Button
-                      className="w-full mt-3"
-                      size="sm"
+                      variant="primary"
+                      size="md"
+                      fullWidth
                       onClick={() => addToOrder(item)}
+                      rounded
                     >
                       Add to Order
                     </Button>
@@ -329,7 +333,7 @@ export default function POSTerminal() {
             </div>
           </div>
 
-          <div className="w-96 bg-white border-l">
+          <div className="w-96 bg-white border-l shadow-xl">
             <div className="p-6 space-y-6">
               <div>
                 <div className="flex items-center justify-between mb-6">
@@ -350,18 +354,20 @@ export default function POSTerminal() {
                       <div className="flex items-center space-x-2">
                         <Button
                           size="sm"
-                          variant="secondary"
+                          variant="outline"
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
                           className="w-8 h-8 p-0"
+                          rounded
                         >
                           -
                         </Button>
-                        <span className="w-8 text-center">{item.quantity}</span>
+                        <span className="w-8 text-center font-semibold">{item.quantity}</span>
                         <Button
                           size="sm"
-                          variant="secondary"
+                          variant="outline"
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
                           className="w-8 h-8 p-0"
+                          rounded
                         >
                           +
                         </Button>
@@ -370,6 +376,7 @@ export default function POSTerminal() {
                           variant="danger"
                           onClick={() => removeFromOrder(item.id)}
                           className="w-8 h-8 p-0 ml-2"
+                          rounded
                         >
                           ×
                         </Button>
@@ -388,11 +395,22 @@ export default function POSTerminal() {
                     </span>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Button className="w-full" onClick={processOrder}>
+                  <div className="space-y-3">
+                    <Button 
+                      variant="primary" 
+                      size="lg" 
+                      fullWidth 
+                      onClick={processOrder}
+                      rounded
+                    >
                       Process Order
                     </Button>
-                    <Button variant="secondary" className="w-full">
+                    <Button 
+                      variant="warning" 
+                      size="md" 
+                      fullWidth
+                      rounded
+                    >
                       Hold Order
                     </Button>
                   </div>

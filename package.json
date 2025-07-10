@@ -1,0 +1,31 @@
+{
+  "name": "tillu-pos-system",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "clean": "turbo run clean",
+    "start": "turbo run start"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "keywords": ["pos", "ai", "restaurant", "food", "takeaway"],
+  "author": "Tillu Team",
+  "license": "MIT",
+  "description": "Next-Generation Human-Centered AI POS System for Food & Takeaways",
+  "devDependencies": {
+    "turbo": "^2.5.4",
+    "@types/node": "^20.3.1",
+    "typescript": "^5.1.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

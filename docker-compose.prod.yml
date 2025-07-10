@@ -1,0 +1,147 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - tillu-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    networks:
+      - tillu-network
+    restart: unless-stopped
+
+  api-gateway:
+    build:
+      context: ./apps/api-gateway
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - tillu-network
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`api.tillu.com`)"
+      - "traefik.http.services.api.loadbalancer.server.port=3001"
+
+  customer-pwa:
+    build:
+      context: ./apps/customer-pwa
+      dockerfile: Dockerfile
+    environment:
+      - NEXT_PUBLIC_API_URL=https://api.tillu.com/api/v1
+    depends_on:
+      - api-gateway
+    networks:
+      - tillu-network
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.customer.rule=Host(`tillu.com`)"
+      - "traefik.http.services.customer.loadbalancer.server.port=3000"
+
+  manager-dashboard:
+    build:
+      context: ./apps/manager-dashboard
+      dockerfile: Dockerfile
+    environment:
+      - NEXT_PUBLIC_API_URL=https://api.tillu.com/api/v1
+    depends_on:
+      - api-gateway
+    networks:
+      - tillu-network
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.manager.rule=Host(`manager.tillu.com`)"
+      - "traefik.http.services.manager.loadbalancer.server.port=3002"
+
+  kitchen-display:
+    build:
+      context: ./apps/kitchen-display
+      dockerfile: Dockerfile
+    environment:
+      - NEXT_PUBLIC_API_URL=https://api.tillu.com/api/v1
+    depends_on:
+      - api-gateway
+    networks:
+      - tillu-network
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kitchen.rule=Host(`kitchen.tillu.com`)"
+      - "traefik.http.services.kitchen.loadbalancer.server.port=3003"
+
+  pos-terminal:
+    build:
+      context: ./apps/pos-terminal
+      dockerfile: Dockerfile
+    environment:
+      - NEXT_PUBLIC_API_URL=https://api.tillu.com/api/v1
+    depends_on:
+      - api-gateway
+    networks:
+      - tillu-network
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pos.rule=Host(`pos.tillu.com`)"
+      - "traefik.http.services.pos.loadbalancer.server.port=3004"
+
+  traefik:
+    image: traefik:v2.10
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.email=admin@tillu.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt
+    networks:
+      - tillu-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  letsencrypt:
+
+networks:
+  tillu-network:
+    driver: bridge
